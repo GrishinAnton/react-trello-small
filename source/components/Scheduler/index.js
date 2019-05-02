@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import Styles from './styles.m.css';
 import { api } from '../../REST'; // ! Импорт модуля API должен иметь именно такой вид (import { api } from '../../REST')
 import Task from './../Task';
+import Checkbox from './../../theme/assets/Checkbox';
 
 export default class Scheduler extends Component {
     render () {
@@ -28,7 +29,11 @@ export default class Scheduler extends Component {
                     </section>
 
                     <footer>
-                        <div />
+                        <Checkbox
+                            className = { Styles.toggleTaskCompletedState }
+                            color1 = { '#3B8EF3' }
+                            color2 = { 'white' }
+                        />
                         <span className = { Styles.completeAllTasks }>Все задачи выполнены</span>
                     </footer>
 
