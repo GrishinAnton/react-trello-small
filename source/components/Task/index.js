@@ -20,17 +20,10 @@ export default class Task extends Component {
         id:             string.isRequired,
         message:        string.isRequired,
     }
-    // _getTaskShape = ({
-    //     id = this.props.id,
-    //     completed = this.props.completed,
-    //     favorite = this.props.favorite,
-    //     message = this.props.message,
-    // }) => ({
-    //     id,
-    //     completed,
-    //     favorite,
-    //     message,
-    // });
+
+    state = {
+        taskEdit: false,
+    }
 
     _getActiveTask = () => {
         const { completed } = this.props;
@@ -40,7 +33,20 @@ export default class Task extends Component {
         });
     }
 
+    _taskEdit = () => {
+        this.setState({
+            taskEdit: !this.state.taskEdit,
+        });
+    }
+
+    _updateComment = () => {
+        console.log('131312');
+
+    }
+
     render () {
+
+        const { taskEdit } = this.state;
 
         const { id,
             completed,
@@ -62,30 +68,38 @@ export default class Task extends Component {
                         color2 = { 'white' }
                         onClick = { () => _completedTask(id) }
                     />
-                    <span>{message }</span>
-                    {/* <input type = 'text' /> */}
+                    <input
+                        disabled = { !taskEdit }
+                        maxLength = '50'
+                        type = 'text'
+                        value = { message }
+                        onChange = { this._updateComment }
+                        // onKeyPress = { this._submitOnKey }
+                    />
                 </div>
                 <div className = { Styles.actions }>
                     <Star
+                        inlineBlock
                         checked = { favorite }
                         className = { Styles.toggleTaskFavoriteState }
                         color1 = { '#3B8EF3' }
                         color2 = { '#000' }
                         color3 = { '#000' }
-                        inlineBlock
                         onClick = { () => _favoriteTask(id) }
                     />
                     <Edit
+                        inlineBlock
+                        checked = { taskEdit }
                         className = { Styles.updateTaskMessageOnClick }
                         color1 = { '#3B8EF3' }
                         color2 = { '#000' }
-                        inlineBlock
+                        onClick = { this._taskEdit }
                     />
                     <Remove
+                        inlineBlock
                         color1 = { '#3B8EF3' }
                         color2 = { '#000' }
                         color3 = { '#000' }
-                        inlineBlock
                         onClick = { () => _removeTask(id) }
                     />
                 </div>

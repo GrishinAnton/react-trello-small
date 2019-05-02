@@ -6,19 +6,42 @@ import Styles from './styles.m.css';
 import { api, TOKEN, MAIN_URL } from '../../REST'; // ! Импорт модуля API должен иметь именно такой вид (import { api } from '../../REST')
 import Task from './../Task';
 import Checkbox from './../../theme/assets/Checkbox';
-import { BaseTaskModel } from './../../instruments';
 import Composer from '../Composer';
 import Spinner from './../../components/Spinner';
+import { sortTasksByGroup } from './../../instruments';
 
 export default class Scheduler extends Component {
     state = {
-        tasks:          [new BaseTaskModel(), new BaseTaskModel(), new BaseTaskModel()],
+        tasks:          [],
         isTaskFetching: false,
+    }
+
+    componentDidMount () {
+        this._fetchTasks();
     }
 
     _setTaskFetching = (state) => {
         this.setState({
             isTaskFetching: state,
+        });
+    }
+
+    _fetchTasks = async () => {
+        this._setTaskFetching(true);
+
+        const response = await fetch(MAIN_URL, {
+            method:  'GET',
+            headers: {
+                'Content-type': 'application/json',
+                Authorization:  TOKEN,
+            },
+        });
+
+        const { data } = await response.json();
+
+        this.setState({
+            tasks:          data,
+            isTaskFetching: false,
         });
     }
 
@@ -119,7 +142,8 @@ export default class Scheduler extends Component {
 
     render () {
         const { tasks, isTaskFetching } = this.state;
-        const tasksJSX = tasks.map((task) => {
+
+        const tasksJSX = sortTasksByGroup(tasks).map((task) => {
             return (
                 <Task
                     key = { task.id }
