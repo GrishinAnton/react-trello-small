@@ -70,6 +70,7 @@ const decorateSvg = (
         };
 
         render () {
+
             const { className, disabled } = this.props;
             const wrapperStyle = this._getWrapperStyle();
             const svgStyle = this._getSvgStyle();
