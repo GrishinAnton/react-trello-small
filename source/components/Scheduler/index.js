@@ -3,47 +3,122 @@ import React, { Component } from 'react';
 
 // Instruments
 import Styles from './styles.m.css';
-import { api } from '../../REST'; // ! Импорт модуля API должен иметь именно такой вид (import { api } from '../../REST')
+import { api, TOKEN, MAIN_URL } from '../../REST'; // ! Импорт модуля API должен иметь именно такой вид (import { api } from '../../REST')
 import Task from './../Task';
 import Checkbox from './../../theme/assets/Checkbox';
 import { BaseTaskModel } from './../../instruments';
+import Composer from '../Composer';
+import Spinner from './../../components/Spinner';
 
 export default class Scheduler extends Component {
     state = {
-        tasks: [new BaseTaskModel(), new BaseTaskModel(), new BaseTaskModel()],
+        tasks:          [new BaseTaskModel(), new BaseTaskModel(), new BaseTaskModel()],
+        isTaskFetching: false,
     }
 
-    _favoriteTask = (id) => {
-        const newTask = this.state.tasks.map((task) => {
+    _setTaskFetching = (state) => {
+        this.setState({
+            isTaskFetching: state,
+        });
+    }
+
+    _addTask = async (message) => {
+
+        this._setTaskFetching(true);
+
+        const response = await fetch(MAIN_URL, {
+            method:  'POST',
+            headers: {
+                'Content-type': 'application/json',
+                Authorization:  TOKEN,
+            },
+            body: JSON.stringify({ message }),
+        });
+
+        const { data } = await response.json();
+
+        this.setState(({ tasks }) => ({
+            tasks:          [...tasks, data],
+            isTaskFetching: false,
+        }));
+
+    }
+
+    _favoriteTask = async (id) => {
+        this._setTaskFetching(true);
+
+        const task = this.state.tasks.filter((task) => {
             if (task.id === id) {
                 task.favorite = !task.favorite;
+
+                return task;
             }
-
-            return task;
         });
 
-        this.setState({
-            tasks: newTask,
+        const response = await fetch(MAIN_URL, {
+            method:  'PUT',
+            headers: {
+                'Content-type': 'application/json',
+                Authorization:  TOKEN,
+            },
+            body: JSON.stringify(task),
         });
+
+        const { data: [newTask] } = await response.json();
+
+        this.setState(({ tasks }) => ({
+            tasks:          tasks.map((task) => task.id === newTask.id ? newTask : task),
+            isTaskFetching: false,
+        }));
+
     };
 
-    _completedTask = (id) => {
-        const newTask = this.state.tasks.map((task) => {
+    _completedTask = async (id) => {
+        this._setTaskFetching(true);
+
+        const task = this.state.tasks.filter((task) => {
             if (task.id === id) {
                 task.completed = !task.completed;
+
+                return task;
             }
-
-            return task;
         });
 
-        this.setState({
-            tasks: newTask,
+        const response = await fetch(MAIN_URL, {
+            method:  'PUT',
+            headers: {
+                'Content-type': 'application/json',
+                Authorization:  TOKEN,
+            },
+            body: JSON.stringify(task),
         });
+
+        const { data: [newTask] } = await response.json();
+
+        this.setState(({ tasks }) => ({
+            tasks:          tasks.map((task) => task.id === newTask.id ? newTask : task),
+            isTaskFetching: false,
+        }));
+    };
+
+    _removeTask = async (id) => {
+        this._setTaskFetching(true);
+
+        await fetch(`${MAIN_URL}/${id}`, {
+            method:  'DELETE',
+            headers: {
+                Authorization: TOKEN,
+            },
+        });
+
+        this.setState(({ tasks }) => ({
+            tasks:          tasks.filter((task) => task.id !== id),
+            isTaskFetching: false,
+        }));
     };
 
     render () {
-        // console.log(new BaseTaskModel());
-        const { tasks } = this.state;
+        const { tasks, isTaskFetching } = this.state;
         const tasksJSX = tasks.map((task) => {
             return (
                 <Task
@@ -51,13 +126,14 @@ export default class Scheduler extends Component {
                     { ...task }
                     _completedTask = { this._completedTask }
                     _favoriteTask = { this._favoriteTask }
-
+                    _removeTask = { this._removeTask }
                 />
             );
         });
 
         return (
             <section className = { Styles.scheduler }>
+                <Spinner isTaskFetching = { isTaskFetching } />
                 <main>
                     <header>
                         <h1>Планировщик задач</h1>
@@ -65,11 +141,7 @@ export default class Scheduler extends Component {
                     </header>
 
                     <section>
-                        <form>
-                            <input placeholder = 'Описание моей новой задачи' type = 'text' />
-                            <button>Добавить задачу</button>
-                        </form>
-
+                        <Composer _addTask = { this._addTask } />
                         <ul>
                             {tasksJSX }
                         </ul>
