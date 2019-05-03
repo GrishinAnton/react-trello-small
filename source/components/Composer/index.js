@@ -68,7 +68,7 @@ export default class extends Component {
                     type = 'text'
                     value = { comment }
                     onChange = { this._updateComment }
-                    onKeyPress = { this._submitOnEnter }
+                    onKeyUp = { this._submitOnEnter }
                 />
                 <button>Добавить задачу</button>
             </form>

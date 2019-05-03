@@ -14,6 +14,7 @@ export default class Scheduler extends Component {
     state = {
         tasks:          [],
         isTaskFetching: false,
+        searchValue:    '',
     }
 
     componentDidMount () {
@@ -124,6 +125,34 @@ export default class Scheduler extends Component {
         }));
     };
 
+    _renameTask = async (id, taskName) => {
+        this._setTaskFetching(true);
+
+        const task = this.state.tasks.filter((task) => {
+            if (task.id === id) {
+                task.message = taskName;
+
+                return task;
+            }
+        });
+
+        const response = await fetch(MAIN_URL, {
+            method:  'PUT',
+            headers: {
+                'Content-type': 'application/json',
+                Authorization:  TOKEN,
+            },
+            body: JSON.stringify(task),
+        });
+
+        const { data: [newTask] } = await response.json();
+
+        this.setState(({ tasks }) => ({
+            tasks:          tasks.map((task) => task.id === newTask.id ? newTask : task),
+            isTaskFetching: false,
+        }));
+    };
+
     _removeTask = async (id) => {
         this._setTaskFetching(true);
 
@@ -140,10 +169,25 @@ export default class Scheduler extends Component {
         }));
     };
 
-    render () {
-        const { tasks, isTaskFetching } = this.state;
+    _searchValue = (event) => {
+        this.setState({
+            searchValue: event.target.value.toLowerCase(),
+        });
+    }
 
-        const tasksJSX = sortTasksByGroup(tasks).map((task) => {
+    render () {
+        const { tasks, isTaskFetching, searchValue } = this.state;
+
+        const tasksJSX = sortTasksByGroup(tasks).filter((task) => {
+            if (searchValue) {
+                if (task.message.toLowerCase().indexOf(searchValue) !== -1) {
+                    return task;
+                }
+            } else {
+                return task;
+            }
+
+        }).map((task) => {
             return (
                 <Task
                     key = { task.id }
@@ -151,6 +195,7 @@ export default class Scheduler extends Component {
                     _completedTask = { this._completedTask }
                     _favoriteTask = { this._favoriteTask }
                     _removeTask = { this._removeTask }
+                    _renameTask = { this._renameTask }
                 />
             );
         });
@@ -161,7 +206,12 @@ export default class Scheduler extends Component {
                 <main>
                     <header>
                         <h1>Планировщик задач</h1>
-                        <input placeholder = 'Поиск' type = 'search' />
+                        <input
+                            placeholder = 'Поиск'
+                            type = 'search'
+                            value = { searchValue }
+                            onChange = { this._searchValue }
+                        />
                     </header>
 
                     <section>
@@ -174,7 +224,7 @@ export default class Scheduler extends Component {
                     <footer>
                         <Checkbox
                             className = { Styles.toggleTaskCompletedState }
-                            color1 = { '#3B8EF3' }
+                            color1 = { '#000' }
                             color2 = { 'white' }
                         />
                         <span className = { Styles.completeAllTasks }>Все задачи выполнены</span>

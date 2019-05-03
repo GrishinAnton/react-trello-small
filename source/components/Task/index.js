@@ -23,7 +23,10 @@ export default class Task extends Component {
 
     state = {
         taskEdit: false,
+        taskName: this.props.message,
     }
+
+    textInput = React.createRef();
 
     _getActiveTask = () => {
         const { completed } = this.props;
@@ -36,22 +39,53 @@ export default class Task extends Component {
     _taskEdit = () => {
         this.setState({
             taskEdit: !this.state.taskEdit,
+        }, () => this.textInput.current.focus());
+
+        this._submitTaskName();
+    }
+
+    _updateTaskName = (event) => {
+        this.setState({
+            taskName: event.target.value,
         });
     }
 
-    _updateComment = () => {
-        console.log('131312');
+    _submitTaskName = () => {
+        const { message, _renameTask, id } = this.props;
+        const { taskName } = this.state;
 
+        if (message !== taskName) {
+            _renameTask(id, taskName);
+        }
+    }
+
+    _submitOnKey = (event) => {
+        const enterKey = event.key === 'Enter';
+        const escKey = event.key === 'Esc';
+
+        if (enterKey) {
+            event.preventDefault();
+            this._taskEdit();
+        }
+
+        // if (escKey) {
+        //     console.log('321313');
+
+        //     event.preventDefault();
+        //     this.setState({
+        //         taskEdit: !this.state.taskEdit,
+        //         comment:  this.props.message,
+        //     });
+        // }
     }
 
     render () {
 
-        const { taskEdit } = this.state;
+        const { taskEdit, taskName } = this.state;
 
         const { id,
             completed,
             favorite,
-            message,
             _favoriteTask,
             _completedTask,
             _removeTask } = this.props;
@@ -71,10 +105,11 @@ export default class Task extends Component {
                     <input
                         disabled = { !taskEdit }
                         maxLength = '50'
+                        ref = { this.textInput }
                         type = 'text'
-                        value = { message }
-                        onChange = { this._updateComment }
-                        // onKeyPress = { this._submitOnKey }
+                        value = { taskName }
+                        onChange = { this._updateTaskName }
+                        onKeyDown = { this._submitOnKey }
                     />
                 </div>
                 <div className = { Styles.actions }>
