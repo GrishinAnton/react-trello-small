@@ -61,22 +61,21 @@ export default class Task extends Component {
 
     _submitOnKey = (event) => {
         const enterKey = event.key === 'Enter';
-        const escKey = event.key === 'Esc';
+        const escKey = event.keyCode === 27;
 
         if (enterKey) {
             event.preventDefault();
             this._taskEdit();
         }
 
-        // if (escKey) {
-        //     console.log('321313');
+        if (escKey) {
 
-        //     event.preventDefault();
-        //     this.setState({
-        //         taskEdit: !this.state.taskEdit,
-        //         comment:  this.props.message,
-        //     });
-        // }
+            event.preventDefault();
+            this.setState({
+                taskEdit: !this.state.taskEdit,
+                taskName: this.props.message,
+            });
+        }
     }
 
     render () {
@@ -105,11 +104,11 @@ export default class Task extends Component {
                     <input
                         disabled = { !taskEdit }
                         maxLength = '50'
+                        onChange = { this._updateTaskName }
+                        onKeyDown = { this._submitOnKey }
                         ref = { this.textInput }
                         type = 'text'
                         value = { taskName }
-                        onChange = { this._updateTaskName }
-                        onKeyDown = { this._submitOnKey }
                     />
                 </div>
                 <div className = { Styles.actions }>

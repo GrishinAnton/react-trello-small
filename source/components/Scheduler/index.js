@@ -15,10 +15,19 @@ export default class Scheduler extends Component {
         tasks:          [],
         isTaskFetching: false,
         searchValue:    '',
+        isAllCheck:     false,
     }
 
-    componentDidMount () {
-        this._fetchTasks();
+    async componentDidMount () {
+        await this._fetchTasks();
+        await this._checkAllCheckingTasks();
+    }
+
+    _checkAllCheckingTasks = () => {
+        this.setState({
+            isAllCheck: this.state.tasks.every((element) => element.completed),
+        });
+
     }
 
     _setTaskFetching = (state) => {
@@ -65,6 +74,8 @@ export default class Scheduler extends Component {
             tasks:          [...tasks, data],
             isTaskFetching: false,
         }));
+
+        this._checkAllCheckingTasks();
 
     }
 
@@ -123,7 +134,24 @@ export default class Scheduler extends Component {
             tasks:          tasks.map((task) => task.id === newTask.id ? newTask : task),
             isTaskFetching: false,
         }));
+
+        this._checkAllCheckingTasks();
     };
+
+    _completedAllTasks = async () => {
+        const { tasks, isAllCheck } = this.state;
+
+        if (!isAllCheck) {
+            const promises = tasks.filter((task) => {
+                if (!task.completed) {
+                    this._completedTask(task.id);
+                }
+            });
+
+            await Promise.all(promises);
+        }
+
+    }
 
     _renameTask = async (id, taskName) => {
         this._setTaskFetching(true);
@@ -176,7 +204,7 @@ export default class Scheduler extends Component {
     }
 
     render () {
-        const { tasks, isTaskFetching, searchValue } = this.state;
+        const { tasks, isTaskFetching, searchValue, isAllCheck } = this.state;
 
         const tasksJSX = sortTasksByGroup(tasks).filter((task) => {
             if (searchValue) {
@@ -226,6 +254,8 @@ export default class Scheduler extends Component {
                             className = { Styles.toggleTaskCompletedState }
                             color1 = { '#000' }
                             color2 = { 'white' }
+                            onClick = { this._completedAllTasks }
+                            checked = { isAllCheck }
                         />
                         <span className = { Styles.completeAllTasks }>Все задачи выполнены</span>
                     </footer>
