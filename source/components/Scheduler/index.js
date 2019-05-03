@@ -12,10 +12,10 @@ import { sortTasksByGroup } from './../../instruments';
 
 export default class Scheduler extends Component {
     state = {
-        tasks:          [],
-        isTaskFetching: false,
-        searchValue:    '',
-        isAllCheck:     false,
+        tasks:       [],
+        isSpinning:  false,
+        searchValue: '',
+        isAllCheck:  false,
     }
 
     async componentDidMount () {
@@ -32,26 +32,18 @@ export default class Scheduler extends Component {
 
     _setTaskFetching = (state) => {
         this.setState({
-            isTaskFetching: state,
+            isSpinning: state,
         });
     }
 
     _fetchTasks = async () => {
         this._setTaskFetching(true);
 
-        const response = await fetch(MAIN_URL, {
-            method:  'GET',
-            headers: {
-                'Content-type': 'application/json',
-                Authorization:  TOKEN,
-            },
-        });
-
-        const { data } = await response.json();
+        const data = await api.fetchTasks();
 
         this.setState({
-            tasks:          data,
-            isTaskFetching: false,
+            tasks:      data,
+            isSpinning: false,
         });
     }
 
@@ -59,20 +51,11 @@ export default class Scheduler extends Component {
 
         this._setTaskFetching(true);
 
-        const response = await fetch(MAIN_URL, {
-            method:  'POST',
-            headers: {
-                'Content-type': 'application/json',
-                Authorization:  TOKEN,
-            },
-            body: JSON.stringify({ message }),
-        });
-
-        const { data } = await response.json();
+        const data = await api.createTask(message);
 
         this.setState(({ tasks }) => ({
-            tasks:          [...tasks, data],
-            isTaskFetching: false,
+            tasks:      [...tasks, data],
+            isSpinning: false,
         }));
 
         this._checkAllCheckingTasks();
@@ -102,8 +85,8 @@ export default class Scheduler extends Component {
         const { data: [newTask] } = await response.json();
 
         this.setState(({ tasks }) => ({
-            tasks:          tasks.map((task) => task.id === newTask.id ? newTask : task),
-            isTaskFetching: false,
+            tasks:      tasks.map((task) => task.id === newTask.id ? newTask : task),
+            isSpinning: false,
         }));
 
     };
@@ -131,8 +114,8 @@ export default class Scheduler extends Component {
         const { data: [newTask] } = await response.json();
 
         this.setState(({ tasks }) => ({
-            tasks:          tasks.map((task) => task.id === newTask.id ? newTask : task),
-            isTaskFetching: false,
+            tasks:      tasks.map((task) => task.id === newTask.id ? newTask : task),
+            isSpinning: false,
         }));
 
         this._checkAllCheckingTasks();
@@ -176,25 +159,25 @@ export default class Scheduler extends Component {
         const { data: [newTask] } = await response.json();
 
         this.setState(({ tasks }) => ({
-            tasks:          tasks.map((task) => task.id === newTask.id ? newTask : task),
-            isTaskFetching: false,
+            tasks:      tasks.map((task) => task.id === newTask.id ? newTask : task),
+            isSpinning: false,
         }));
     };
 
     _removeTask = async (id) => {
         this._setTaskFetching(true);
 
-        await fetch(`${MAIN_URL}/${id}`, {
-            method:  'DELETE',
-            headers: {
-                Authorization: TOKEN,
-            },
-        });
+        try {
+            await api.removeTask(id);
 
-        this.setState(({ tasks }) => ({
-            tasks:          tasks.filter((task) => task.id !== id),
-            isTaskFetching: false,
-        }));
+            this.setState(({ tasks }) => ({
+                tasks:      tasks.filter((task) => task.id !== id),
+                isSpinning: false,
+            }));
+        } catch (error) {
+            console.log(error);
+        }
+
     };
 
     _searchValue = (event) => {
@@ -204,7 +187,7 @@ export default class Scheduler extends Component {
     }
 
     render () {
-        const { tasks, isTaskFetching, searchValue, isAllCheck } = this.state;
+        const { tasks, isSpinning, searchValue, isAllCheck } = this.state;
 
         const tasksJSX = sortTasksByGroup(tasks).filter((task) => {
             if (searchValue) {
@@ -230,7 +213,7 @@ export default class Scheduler extends Component {
 
         return (
             <section className = { Styles.scheduler }>
-                <Spinner isTaskFetching = { isTaskFetching } />
+                <Spinner isSpinning = { isSpinning } />
                 <main>
                     <header>
                         <h1>Планировщик задач</h1>

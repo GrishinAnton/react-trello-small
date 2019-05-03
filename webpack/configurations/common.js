@@ -21,7 +21,7 @@ import merge from 'webpack-merge';
 export const generateCommonConfiguration = () => {
     const BUILD_ENV = process.env.BUILD_ENV;
     const IS_DEPLOYING_TO_GITHUB_PAGES = process.env.DEPLOY_TARGET === 'github-pages';
-    let REPOSITORY_NAME = '';
+    let REPOSITORY_NAME = 'react-trello-small';
 
     try {
         REPOSITORY_NAME = getRepositoryName.sync();
