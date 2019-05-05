@@ -12,21 +12,20 @@ import Remove from './../../theme/assets/Remove';
 
 export default class Task extends Component {
     static propTypes = {
-        _completedTask: func.isRequired,
-        _favoriteTask:  func.isRequired,
-        _removeTask:    func.isRequired,
-        completed:      bool.isRequired,
-        favorite:       bool.isRequired,
-        id:             string.isRequired,
-        message:        string.isRequired,
+        _removeTaskAsync: func.isRequired,
+        completed:        bool.isRequired,
+        favorite:         bool.isRequired,
+        id:               string.isRequired,
+        message:          string.isRequired,
+        updateTask:       func.isRequired,
     }
 
     state = {
-        taskEdit: false,
-        taskName: this.props.message,
+        isTaskEditing:  false,
+        newTaskMessage: this.props.message,
     }
 
-    textInput = React.createRef();
+    taskInput = React.createRef();
 
     _getActiveTask = () => {
         const { completed } = this.props;
@@ -36,58 +35,57 @@ export default class Task extends Component {
         });
     }
 
-    _taskEdit = () => {
+    _setTaskEditingState = () => {
         this.setState({
-            taskEdit: !this.state.taskEdit,
-        }, () => this.textInput.current.focus());
+            isTaskEditing: !this.state.isTaskEditing,
+        }, () => this.taskInput.current.focus());
 
         this._submitTaskName();
     }
 
     _updateTaskName = (event) => {
         this.setState({
-            taskName: event.target.value,
+            newTaskMessage: event.target.value,
         });
     }
 
     _submitTaskName = () => {
-        const { message, _renameTask, id } = this.props;
-        const { taskName } = this.state;
+        const { message, _updateNewTaskMessage, id } = this.props;
+        const { newTaskMessage } = this.state;
 
-        if (message !== taskName) {
-            _renameTask(id, taskName);
+        if (message !== newTaskMessage) {
+            _updateNewTaskMessage(id, newTaskMessage);
         }
     }
 
-    _submitOnKey = (event) => {
+    _updateTaskMessageOnKeyDown = (event) => {
         const enterKey = event.key === 'Enter';
         const escKey = event.keyCode === 27;
 
         if (enterKey) {
             event.preventDefault();
-            this._taskEdit();
+            this._setTaskEditingState();
         }
 
         if (escKey) {
 
             event.preventDefault();
             this.setState({
-                taskEdit: !this.state.taskEdit,
-                taskName: this.props.message,
+                isTaskEditing:  !this.state.isTaskEditing,
+                newTaskMessage: this.props.message,
             });
         }
     }
 
     render () {
 
-        const { taskEdit, taskName } = this.state;
+        const { isTaskEditing, newTaskMessage } = this.state;
 
         const { id,
             completed,
             favorite,
-            _favoriteTask,
-            _completedTask,
-            _removeTask } = this.props;
+            updateTask,
+            _removeTaskAsync } = this.props;
 
         const activeTask = this._getActiveTask();
 
@@ -99,16 +97,16 @@ export default class Task extends Component {
                         className = { Styles.toggleTaskCompletedState }
                         color1 = { '#3B8EF3' }
                         color2 = { 'white' }
-                        onClick = { () => _completedTask(id) }
+                        onClick = { () => updateTask(id, 'complited') }
                     />
                     <input
-                        disabled = { !taskEdit }
+                        disabled = { !isTaskEditing }
                         maxLength = '50'
                         onChange = { this._updateTaskName }
-                        onKeyDown = { this._submitOnKey }
-                        ref = { this.textInput }
+                        onKeyDown = { this._updateTaskMessageOnKeyDown }
+                        ref = { this.taskInput }
                         type = 'text'
-                        value = { taskName }
+                        value = { newTaskMessage }
                     />
                 </div>
                 <div className = { Styles.actions }>
@@ -119,22 +117,22 @@ export default class Task extends Component {
                         color1 = { '#3B8EF3' }
                         color2 = { '#000' }
                         color3 = { '#000' }
-                        onClick = { () => _favoriteTask(id) }
+                        onClick = { () => updateTask(id, 'favorite') }
                     />
                     <Edit
                         inlineBlock
-                        checked = { taskEdit }
+                        checked = { isTaskEditing }
                         className = { Styles.updateTaskMessageOnClick }
                         color1 = { '#3B8EF3' }
                         color2 = { '#000' }
-                        onClick = { this._taskEdit }
+                        onClick = { this._setTaskEditingState }
                     />
                     <Remove
                         inlineBlock
                         color1 = { '#3B8EF3' }
                         color2 = { '#000' }
                         color3 = { '#000' }
-                        onClick = { () => _removeTask(id) }
+                        onClick = { () => _removeTaskAsync(id) }
                     />
                 </div>
             </li>

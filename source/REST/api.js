@@ -34,8 +34,38 @@ export const api = {
 
     },
 
-    async removeTask (id) {
+    async updateTask (task) {
 
+        const response = await fetch(MAIN_URL, {
+            method:  'PUT',
+            headers: {
+                'Content-type': 'application/json',
+                Authorization:  TOKEN,
+            },
+            body: JSON.stringify(task),
+        });
+
+        const { data } = await response.json();
+
+        return data;
+
+    },
+
+    async completeAllTasks (tasks) {
+
+        const promises = await tasks.filter((task) => {
+            if (!task.completed) {
+                task.completed = true;
+
+                return this.updateTask(Array(task));
+            }
+        });
+
+        Promise.all(promises);
+
+    },
+
+    async removeTask (id) {
         await fetch(`${MAIN_URL}/${id}`, {
             method:  'DELETE',
             headers: {
@@ -43,4 +73,5 @@ export const api = {
             },
         });
     },
+
 };
