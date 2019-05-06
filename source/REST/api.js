@@ -42,7 +42,7 @@ export const api = {
                 'Content-type': 'application/json',
                 Authorization:  TOKEN,
             },
-            body: JSON.stringify(task),
+            body: JSON.stringify([task]),
         });
 
         const { data } = await response.json();
@@ -57,7 +57,7 @@ export const api = {
             if (!task.completed) {
                 task.completed = true;
 
-                return this.updateTask(Array(task));
+                return this.updateTask(task);
             }
         });
 

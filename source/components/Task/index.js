@@ -21,8 +21,8 @@ export default class Task extends Component {
     }
 
     state = {
-        isTaskEditing:  false,
-        newTaskMessage: this.props.message,
+        isTaskEditing: false,
+        newMessage:    this.props.message,
     }
 
     taskInput = React.createRef();
@@ -46,21 +46,21 @@ export default class Task extends Component {
 
     }
 
-    _updateNewTaskMessage = (value) => {
+    _updateNewTaskMessage = (event) => {
         this.setState({
-            newTaskMessage: value,
+            newMessage: event.target.value,
         });
     }
 
     _updateTask = () => {
         const { message, _updateTaskAsync } = this.props;
-        const { newTaskMessage } = this.state;
+        const { newMessage } = this.state;
 
-        if (!newTaskMessage) {
+        if (!newMessage) {
             return null;
         }
 
-        if (newTaskMessage === message) {
+        if (newMessage === message) {
             this._setTaskEditingState(false);
 
             return null;
@@ -70,8 +70,8 @@ export default class Task extends Component {
 
         const task = this._getTaskShape(this.props);
 
-        task.message = newTaskMessage;
-        _updateTaskAsync(Array(task));
+        task.message = newMessage;
+        _updateTaskAsync(task);
 
     }
 
@@ -89,9 +89,9 @@ export default class Task extends Component {
     _updateTaskMessageOnKeyDown = (event) => {
         const enterKey = event.key === 'Enter';
         const escKey = event.key === 'Escape';
-        const { newTaskMessage } = this.state;
+        const { newMessage } = this.state;
 
-        if (!newTaskMessage) {
+        if (!newMessage) {
             return null;
         }
 
@@ -108,26 +108,24 @@ export default class Task extends Component {
     _cancelUpdatingTaskMessage = () => {
         this._setTaskEditingState(false);
         this.setState({
-            newTaskMessage: this.props.message,
+            newMessage: this.props.message,
         });
     }
 
     _toggleTaskCompletedState = () => {
         const { completed, _updateTaskAsync } = this.props;
 
-        // const task = this._getTaskShape(this.props);
+        const task = this._getTaskShape({ completed: !completed });
 
-        // task.completed = !completed;
-
-        // _updateTaskAsync(Array(task));
+        _updateTaskAsync(task);
     }
 
     _toggleTaskFavoriteState = () => {
-        const { _updateTaskAsync } = this.props;
+        const { favorite, _updateTaskAsync } = this.props;
 
-        // console.log(this._getTaskShape(), 'shape');
+        const task = this._getTaskShape({ favorite: !favorite });
 
-        // _updateTaskAsync(this._getTaskShape());
+        _updateTaskAsync(task);
     }
 
     _removeTask = () => {
@@ -146,7 +144,7 @@ export default class Task extends Component {
 
     render () {
 
-        const { isTaskEditing, newTaskMessage } = this.state;
+        const { isTaskEditing, newMessage } = this.state;
 
         const {
             completed,
@@ -170,8 +168,8 @@ export default class Task extends Component {
                         maxLength = { 50 }
                         ref = { this.taskInput }
                         type = 'text'
-                        value = { newTaskMessage }
-                        onChange = { (e) => this._updateNewTaskMessage(e.target.value) }
+                        value = { newMessage }
+                        onChange = { this._updateNewTaskMessage }
                         onKeyDown = { this._updateTaskMessageOnKeyDown }
 
                     />

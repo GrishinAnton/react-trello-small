@@ -20,7 +20,7 @@ export default class Scheduler extends Component {
 
     async componentDidMount () {
         await this._fetchTasksAsync();
-        await this._checkAllCheckingTasks();
+        this._checkAllCheckingTasks();
     }
 
     _updateNewTaskMessage = (event) => {
@@ -87,15 +87,16 @@ export default class Scheduler extends Component {
     _updateTaskAsync = async (task) => {
         this._setTasksFetchingState(true);
 
-        const [newTask] = await api.updateTask(task);
+        const response = await api.updateTask(task);
+
+        const [newTask] = Array.from(response);
 
         this.setState(({ tasks }) => ({
-            tasks: tasks.map((localTask) => localTask.id === newTask.id ? newTask : localTask),
+            tasks: tasks.map((task) => task.id === newTask.id ? newTask : task),
         }));
 
-        this._checkAllCheckingTasks();
-
         this._setTasksFetchingState(false);
+        this._checkAllCheckingTasks();
     }
 
     _completeAllTasksAsync = async () => {
@@ -107,8 +108,6 @@ export default class Scheduler extends Component {
         }
 
         this._setTasksFetchingState(true);
-
-        //  TODO убрал получение значения из запроса, чтобы пройти тесты. Но по сути оно нужно, так как в ответе возвращается новый объект с уже измененным параметром modifide. В запросах оставил возврат данных
 
         await api.completeAllTasks(tasks);
 
