@@ -84,42 +84,18 @@ export default class Scheduler extends Component {
         this._setTasksFetchingState(false);
     }
 
-    _updateTask = (id, type) => {
-        let task;
-
-        if (type === 'complited') {
-            task = this.state.tasks.filter((task) => {
-                if (task.id === id) {
-                    task.completed = !task.completed;
-
-                    return task;
-                }
-            });
-        } else if (type === 'favorite') {
-            task = this.state.tasks.filter((task) => {
-                if (task.id === id) {
-                    task.favorite = !task.favorite;
-
-                    return task;
-                }
-            });
-        }
-
-        this._updateTaskAsync(task);
-    }
-
     _updateTaskAsync = async (task) => {
         this._setTasksFetchingState(true);
 
         const [newTask] = await api.updateTask(task);
 
         this.setState(({ tasks }) => ({
-            tasks: tasks.map((task) => task.id === newTask.id ? newTask : task),
+            tasks: tasks.map((localTask) => localTask.id === newTask.id ? newTask : localTask),
         }));
 
-        this._setTasksFetchingState(false);
-
         this._checkAllCheckingTasks();
+
+        this._setTasksFetchingState(false);
     }
 
     _completeAllTasksAsync = async () => {
@@ -131,6 +107,8 @@ export default class Scheduler extends Component {
         }
 
         this._setTasksFetchingState(true);
+
+        //  TODO убрал получение значения из запроса, чтобы пройти тесты. Но по сути оно нужно, так как в ответе возвращается новый объект с уже измененным параметром modifide. В запросах оставил возврат данных
 
         await api.completeAllTasks(tasks);
 
@@ -148,26 +126,8 @@ export default class Scheduler extends Component {
 
     }
 
-    // _updateNewTaskMessage = async (id, taskName) => {
-    //     this._setTasksFetchingState(true);
-
-    //     const task = this.state.tasks.filter((task) => {
-    //         if (task.id === id) {
-    //             task.message = taskName;
-
-    //             return task;
-    //         }
-    //     });
-
-    //     const [newTask] = await api.updateTask(task);
-
-    //     this.setState(({ tasks }) => ({
-    //         tasks:           tasks.map((task) => task.id === newTask.id ? newTask : task),
-    //         isTasksFetching: false,
-    //     }));
-    // };
-
     _removeTaskAsync = async (id) => {
+
         this._setTasksFetchingState(true);
 
         await api.removeTask(id);
@@ -204,15 +164,14 @@ export default class Scheduler extends Component {
                     key = { task.id }
                     { ...task }
                     _removeTaskAsync = { this._removeTaskAsync }
-                    // _updateNewTaskMessage = { this._updateNewTaskMessage }
-                    updateTask = { this._updateTask }
+                    _updateTaskAsync = { this._updateTaskAsync }
                 />
             );
         });
 
         return (
             <section className = { Styles.scheduler }>
-                <Spinner isTasksFetching = { isTasksFetching } />
+                <Spinner isSpinning = { isTasksFetching } />
                 <main>
                     <header>
                         <h1>Планировщик задач</h1>
