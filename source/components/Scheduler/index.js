@@ -1,5 +1,6 @@
 // Core
 import React, { Component } from 'react';
+import FlipMove from 'react-flip-move';
 
 // Instruments
 import Styles from './styles.m.css';
@@ -185,8 +186,9 @@ export default class Scheduler extends Component {
                     <section>
                         <form onSubmit = { this._createTaskAsync }>
                             <input
+                                className = { Styles.createTask }
                                 maxLength = { 50 }
-                                placeholder = 'Описание моей новой задачи'
+                                placeholder = 'Описaние моей новой задачи'
                                 type = 'text'
                                 value = { newTaskMessage }
                                 onChange = { this._updateNewTaskMessage }
@@ -194,18 +196,24 @@ export default class Scheduler extends Component {
                             />
                             <button>Добавить задачу</button>
                         </form>
-                        <ul>
-                            {tasksJSX }
-                        </ul>
+                        <div className = { Styles.overlay }>
+                            <ul>
+                                <FlipMove
+                                    duration = { 400 }
+                                    enterAnimation = 'elevator'
+                                    leaveAnimation = 'elevator'>
+                                    {tasksJSX}
+                                </FlipMove>
+                            </ul>
+                        </div>
                     </section>
 
                     <footer>
                         <Checkbox
-                            className = { Styles.toggleTaskCompletedState }
-                            color1 = { '#000' }
+                            checked = { isAllCheck }
+                            color1 = { '#363636' }
                             color2 = { '#fff' }
                             onClick = { this._completeAllTasksAsync }
-                            checked = { isAllCheck }
                         />
                         <span className = { Styles.completeAllTasks }>Все задачи выполнены</span>
                     </footer>
